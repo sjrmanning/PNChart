@@ -32,6 +32,7 @@
         _barBackgroundColor  = PNLightGrey;
         _labels              = [NSMutableArray array];
         _bars                = [NSMutableArray array];
+        _barWidthFactor      = 0.5f;
     }
 
     return self;
@@ -89,10 +90,18 @@
 	_strokeColor = strokeColor;
 }
 
+-(void)setBarWidthFactor:(CGFloat)barWidthFactor
+{
+    if (barWidthFactor > 0.f && barWidthFactor <= 1.f) {
+        _barWidthFactor = barWidthFactor;
+    }
+}
+
 -(void)strokeChart
 {
     [self viewCleanupForCollection:_bars];
     CGFloat chartCavanHeight = self.frame.size.height - chartMargin * 2 - 40.0;
+    CGFloat barGap = (1 - self.barWidthFactor) / 2.f;
     NSInteger index = 0;
 
     for (NSString * valueString in _yValues) {
@@ -101,9 +110,9 @@
         float grade = (float)value / (float)_yValueMax;
         PNBar * bar;
         if (_showLabel) {
-            bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * 0.25), self.frame.size.height - chartCavanHeight - 30.0, _xLabelWidth * 0.5, chartCavanHeight)];
+            bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * barGap), self.frame.size.height - chartCavanHeight - 30.0, _xLabelWidth * _barWidthFactor, chartCavanHeight)];
         }else{
-            bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * 0.25), self.frame.size.height - chartCavanHeight , _xLabelWidth * 0.6, chartCavanHeight)];
+            bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * barGap), self.frame.size.height - chartCavanHeight , _xLabelWidth * _barWidthFactor, chartCavanHeight)];
         }
         bar.backgroundColor = _barBackgroundColor;
         bar.barColor = [self barColorAtIndex:index];

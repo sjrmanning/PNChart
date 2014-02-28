@@ -29,6 +29,8 @@
 
 @property (nonatomic) CGFloat xLabelWidth;
 
+@property (nonatomic) CGFloat barWidthFactor;
+
 @property (nonatomic) int yValueMax;
 
 @property (nonatomic, strong) UIColor * strokeColor;
