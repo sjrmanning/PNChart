@@ -33,6 +33,7 @@
         _labels              = [NSMutableArray array];
         _bars                = [NSMutableArray array];
         _barWidthFactor      = 0.5f;
+        _stackedYColor       = PNYellow;
     }
 
     return self;
@@ -44,6 +45,31 @@
     [self setYLabels:yValues];
 
     _xLabelWidth = (self.frame.size.width - chartMargin*2)/[_yValues count];
+}
+
+-(void)setStackedYValues:(NSArray *)stackedYValues
+{
+    if ([stackedYValues count] != [self.yValues count]) {
+        NSLog(@"PNChart ERROR: Stacked Y value array count does not equal yValues count. "
+              @"Ensure that yValues is set before stackedYValues.");
+
+    }
+    _stackedYValues = stackedYValues;
+
+    __block NSInteger max = 0;
+    [_stackedYValues enumerateObjectsUsingBlock:^(NSString *valueString,
+                                                  NSUInteger idx,
+                                                  BOOL *stop) {
+        NSInteger value = [valueString integerValue];
+        NSInteger origValue = [[self.yValues objectAtIndex:idx] integerValue];
+        NSInteger total = value + origValue;
+
+        if (total > max) {
+            max = total;
+        }
+    }];
+
+    _yValueMax = (int)max;
 }
 
 -(void)setYLabels:(NSArray *)yLabels
@@ -114,11 +140,34 @@
         }else{
             bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * barGap), self.frame.size.height - chartCavanHeight , _xLabelWidth * _barWidthFactor, chartCavanHeight)];
         }
+
+        // If there's stacked Y values, we need to build that too.
+        PNBar *stackedBar = nil;
+        if ([_stackedYValues count] == [_yValues count]) {
+            NSString *stackedValueString = [_stackedYValues objectAtIndex:index];
+            float stackedValue = [stackedValueString floatValue];
+            float stackedGrade = stackedValue / (float)_yValueMax;
+            stackedBar = [[PNBar alloc]
+                          initWithFrame:CGRectMake(bar.frame.origin.x,
+                                                   bar.frame.origin.y - (chartCavanHeight * grade) - 0.5f,
+                                                   bar.frame.size.width,
+                                                   chartCavanHeight - 0.5f)];
+            stackedBar.layer.cornerRadius = 0.f;
+            stackedBar.backgroundColor = [UIColor clearColor];
+            stackedBar.barColor = _stackedYColor;
+            stackedBar.grade = stackedGrade;
+        }
+
         bar.backgroundColor = _barBackgroundColor;
         bar.barColor = [self barColorAtIndex:index];
         bar.grade = grade;
         [_bars addObject:bar];
         [self addSubview:bar];
+
+        if (stackedBar) {
+            [_bars addObject:stackedBar];
+            [self addSubview:stackedBar];
+        }
 
         index += 1;
     }

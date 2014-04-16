@@ -27,6 +27,10 @@
 
 @property (strong, nonatomic) NSArray * yValues;
 
+@property (strong, nonatomic) NSArray * stackedYValues;
+
+@property (strong, nonatomic) UIColor * stackedYColor;
+
 @property (nonatomic) CGFloat xLabelWidth;
 
 @property (nonatomic) CGFloat barWidthFactor;
