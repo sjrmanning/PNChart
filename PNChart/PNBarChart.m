@@ -155,7 +155,12 @@
             stackedBar.layer.cornerRadius = 0.f;
             stackedBar.backgroundColor = [UIColor clearColor];
             stackedBar.barColor = _stackedYColor;
-            stackedBar.grade = stackedGrade;
+            // Queue setting grade after 1.0 second (hardcoded animation value).
+            // This strokes the stacked part of the bars after the main part.
+            dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC));
+            dispatch_after(time, dispatch_get_main_queue(), ^{
+                stackedBar.grade = stackedGrade;
+            });
         }
 
         bar.backgroundColor = _barBackgroundColor;
