@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "PNBar.h"
 
 @protocol PNChartDelegate <NSObject>
 
@@ -22,5 +23,10 @@
  */
 - (void)userClickedOnLineKeyPoint:(CGPoint )point lineIndex:(NSInteger)lineIndex andPointIndex:(NSInteger)pointIndex;
 
+/**
+ * When user click on a chart bar
+ *
+ */
+- (void)userClickedOnBarChartIndex:(NSInteger)barIndex bar:(PNBar *)bar;
 
 @end

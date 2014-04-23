@@ -155,6 +155,7 @@
             stackedBar.layer.cornerRadius = 0.f;
             stackedBar.backgroundColor = [UIColor clearColor];
             stackedBar.barColor = _stackedYColor;
+            stackedBar.tag = -index - 1;
             // Queue setting grade after 1.0 second (hardcoded animation value).
             // This strokes the stacked part of the bars after the main part.
             dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC));
@@ -166,6 +167,7 @@
         bar.backgroundColor = _barBackgroundColor;
         bar.barColor = [self barColorAtIndex:index];
         bar.grade = grade;
+        bar.tag = index;
         [_bars addObject:bar];
         [self addSubview:bar];
 
@@ -194,6 +196,26 @@
         return self.strokeColors[index];
     } else {
         return self.strokeColor;
+    }
+}
+
+#pragma mark - Touch detection
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [self touchPoint:touches withEvent:event];
+    [super touchesBegan:touches withEvent:event];
+}
+
+- (void)touchPoint:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    //Get the point user touched
+    UITouch *touch = [touches anyObject];
+    CGPoint touchPoint = [touch locationInView:self];
+    UIView *subview = [self hitTest:touchPoint withEvent:nil];
+
+    if ([subview isKindOfClass:[PNBar class]] && [self.delegate respondsToSelector:@selector(userClickedOnBarCharIndex:bar:)]) {
+        [self.delegate userClickedOnBarCharIndex:subview.tag bar:(PNBar *)subview];
     }
 }
 
