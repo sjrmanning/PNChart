@@ -214,8 +214,8 @@
     CGPoint touchPoint = [touch locationInView:self];
     UIView *subview = [self hitTest:touchPoint withEvent:nil];
 
-    if ([subview isKindOfClass:[PNBar class]] && [self.delegate respondsToSelector:@selector(userClickedOnBarCharIndex:bar:)]) {
-        [self.delegate userClickedOnBarCharIndex:subview.tag bar:(PNBar *)subview];
+    if ([subview isKindOfClass:[PNBar class]] && [self.delegate respondsToSelector:@selector(userClickedOnBarChartIndex:bar:)]) {
+        [self.delegate userClickedOnBartCharIndex:subview.tag bar:(PNBar *)subview];
     }
 }
 
