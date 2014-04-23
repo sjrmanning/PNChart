@@ -215,7 +215,7 @@
     UIView *subview = [self hitTest:touchPoint withEvent:nil];
 
     if ([subview isKindOfClass:[PNBar class]] && [self.delegate respondsToSelector:@selector(userClickedOnBarChartIndex:bar:)]) {
-        [self.delegate userClickedOnBartCharIndex:subview.tag bar:(PNBar *)subview];
+        [self.delegate userClickedOnBarChartIndex:subview.tag bar:(PNBar *)subview];
     }
 }
 
