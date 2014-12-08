@@ -33,7 +33,7 @@
         _labels              = [NSMutableArray array];
         _bars                = [NSMutableArray array];
         _barWidthFactor      = 0.5f;
-        _stackedYColor       = PNYellow;
+        _stackedYColors      = @[PNYellow];
     }
 
     return self;
@@ -49,25 +49,28 @@
 
 -(void)setStackedYValues:(NSArray *)stackedYValues
 {
-    if ([stackedYValues count] != [self.yValues count]) {
-        NSLog(@"PNChart ERROR: Stacked Y value array count does not equal yValues count. "
-              @"Ensure that yValues is set before stackedYValues.");
-
+    for (NSArray *stackedValues in stackedYValues) {
+        if ([stackedValues count] != [self.yValues count]) {
+            NSLog(@"PNChart ERROR: Stacked Y value array count does not equal yValues count. "
+                  @"Ensure that yValues is set before stackedYValues.");
+            
+        }
     }
+
     _stackedYValues = stackedYValues;
 
     __block NSInteger max = 0;
-    [_stackedYValues enumerateObjectsUsingBlock:^(NSString *valueString,
-                                                  NSUInteger idx,
-                                                  BOOL *stop) {
-        NSInteger value = [valueString integerValue];
-        NSInteger origValue = [[self.yValues objectAtIndex:idx] integerValue];
-        NSInteger total = value + origValue;
-
-        if (total > max) {
-            max = total;
+    for (NSInteger i = 0; i < [_yValues count]; i++) {
+        NSInteger totalAtIndex = [[self.yValues objectAtIndex:i] integerValue];
+        for (NSArray *stackedValues in stackedYValues) {
+            NSInteger value = [stackedValues[i] integerValue];
+            totalAtIndex += value;
         }
-    }];
+
+        if (totalAtIndex > max) {
+            max = totalAtIndex;
+        }
+    }
 
     _yValueMax = (int)max;
 }
@@ -141,29 +144,6 @@
             bar = [[PNBar alloc] initWithFrame:CGRectMake((index *  _xLabelWidth + chartMargin + _xLabelWidth * barGap), self.frame.size.height - chartCavanHeight , _xLabelWidth * _barWidthFactor, chartCavanHeight)];
         }
 
-        // If there's stacked Y values, we need to build that too.
-        PNBar *stackedBar = nil;
-        if ([_stackedYValues count] == [_yValues count]) {
-            NSString *stackedValueString = [_stackedYValues objectAtIndex:index];
-            float stackedValue = [stackedValueString floatValue];
-            float stackedGrade = stackedValue / (float)_yValueMax;
-            stackedBar = [[PNBar alloc]
-                          initWithFrame:CGRectMake(bar.frame.origin.x,
-                                                   bar.frame.origin.y - (chartCavanHeight * grade) - 0.5f,
-                                                   bar.frame.size.width,
-                                                   chartCavanHeight - 0.5f)];
-            stackedBar.layer.cornerRadius = 0.f;
-            stackedBar.backgroundColor = [UIColor clearColor];
-            stackedBar.barColor = _stackedYColor;
-            stackedBar.tag = -index - 1;
-            // Queue setting grade after 1.0 second (hardcoded animation value).
-            // This strokes the stacked part of the bars after the main part.
-            dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1.0 * NSEC_PER_SEC));
-            dispatch_after(time, dispatch_get_main_queue(), ^{
-                stackedBar.grade = stackedGrade;
-            });
-        }
-
         bar.backgroundColor = _barBackgroundColor;
         bar.barColor = [self barColorAtIndex:index];
         bar.grade = grade;
@@ -171,9 +151,33 @@
         [_bars addObject:bar];
         [self addSubview:bar];
 
-        if (stackedBar) {
-            [_bars addObject:stackedBar];
-            [self addSubview:stackedBar];
+        // If there's stacked Y values, we need to build that too.
+        if (self.stackedYValues) {
+            __block float currentGrade = grade;
+            for (__block int stackIndex = 0; stackIndex < [self.stackedYValues count]; stackIndex++) {
+                float stackedValue = [self.stackedYValues[stackIndex][index] floatValue];
+                float stackedGrade = stackedValue / (float)_yValueMax;
+
+                PNBar *stackedBar = [[PNBar alloc]
+                              initWithFrame:CGRectMake(bar.frame.origin.x,
+                                                       bar.frame.origin.y - (chartCavanHeight * currentGrade) - 0.5f,
+                                                       bar.frame.size.width,
+                                                       chartCavanHeight - (0.5f * (stackIndex + 1)))];
+                stackedBar.layer.cornerRadius = 0.f;
+                stackedBar.backgroundColor = [UIColor clearColor];
+                stackedBar.barColor = self.stackedYColors[stackIndex];//_stackedYColor;
+                stackedBar.tag = -index - 1;
+                // Queue setting grade after 1.0 second per stack index (hardcoded animation value).
+                // This strokes the stacked part of the bars after the main part.
+                dispatch_time_t time = dispatch_time(DISPATCH_TIME_NOW, (int64_t)((1.0 * (stackIndex + 1) * NSEC_PER_SEC)));
+                dispatch_after(time, dispatch_get_main_queue(), ^{
+                    stackedBar.grade = stackedGrade;
+                });
+                currentGrade += stackedGrade;
+
+                [_bars addObject:stackedBar];
+                [self addSubview:stackedBar];
+            }
         }
 
         index += 1;
