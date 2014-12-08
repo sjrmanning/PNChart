@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "PNChart"
-  s.version      = "0.3.8"
+  s.version      = "0.3.9"
   s.summary      = "A simple and beautiful chart lib with animation used in Piner for iOS"
 
   s.homepage     = "https://github.com/stafu/PNChart"
